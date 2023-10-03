@@ -1,7 +1,19 @@
-from lib.nixenv import NixEnv
+import os
+import sys
 from typing import List, Dict
 
 import dotbot
+
+
+def add_module_to_path():
+    path = os.path.join(os.path.dirname(os.path.realpath(__file__)))
+    if path not in sys.path:
+        sys.path.append(path)
+
+
+add_module_to_path()
+
+from lib.nixenv import NixEnv
 
 
 class NixEnvPlugin(dotbot.Plugin):
