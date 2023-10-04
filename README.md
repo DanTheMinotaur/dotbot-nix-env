@@ -39,3 +39,8 @@ pip install -e dotbot/
 ```shell
 ./dotbot/bin/dotbot -d ./tests/example/ --plugin-dir ./ -c ./tests/example/install.yml
 ```
+
+### Run Unit Tests
+```shell
+python -m unittest discover -s tests/ -p '*_test.py'
+```

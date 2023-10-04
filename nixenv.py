@@ -28,7 +28,13 @@ class NixEnvPlugin(dotbot.Plugin):
 
         self._log.info('Installing packages with nix-env')
 
-        nix = NixEnv(config.get('nix_path', None))
+        nix: NixEnv
+
+        try:
+            nix = NixEnv(config.get('nix_path', None))
+        except NixEnv.NixEnvException as e:
+            self._log.info(e.message)
+            return False
 
         packages: List[str, Dict] = config.get('packages', [])
 
@@ -38,12 +44,15 @@ class NixEnvPlugin(dotbot.Plugin):
                 if isinstance(package, dict):
                     package, revision = next(iter(package.items()))
 
-                nix.install(package, revision)
-                msg = f'Installed {package}'
+                pkg_msg = f'{package}'
                 if revision:
-                    msg += f"; Revision: {revision}"
+                    pkg_msg += f"; Revision: {revision}"
 
-                self._log.info(msg)
+                self._log.info(f'Installing {pkg_msg}')
+
+                nix.install(package, revision)
+
+                self._log.info(f'Installed {pkg_msg}')
             except NixEnv.NixEnvException as e:
                 self._log.error(e.message)
         return True
