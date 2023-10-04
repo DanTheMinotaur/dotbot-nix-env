@@ -26,6 +26,8 @@ class NixEnvPlugin(dotbot.Plugin):
         if not self.can_handle(directive):
             return False
 
+        self._log.info('Installing packages with nix-env')
+
         nix = NixEnv(config.get('nix_path', None))
 
         packages: List[str, Dict] = config.get('packages', [])

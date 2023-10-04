@@ -2,11 +2,17 @@
 A plugin for [dotbot](https://github.com/anishathalye/dotbot), which installs packages using the `nix-env` command from the [Nix package manager](https://nixos.org/). 
 
 ## Install
+```shell
+git submodule add git@github.com:DanTheMinotaur/dotbot-nix-env.git
+git submodule update --init --recursive
 
+# Pass --plugin-dir dotbot-nix-env to you dotbot command
+./install --plugin-dir dotbot-nix-env
+```
 
 ## Usage
 
-Add the `nixenv` directive to you install.yaml. 
+Add the `nixenv` directive to your `install.yaml`. 
 
 Using string values is equivalent to `nix-env -i <package>`, which will install the latest version available. 
 Using a hash `{ <package>: <revision> }` is equivalent `nix-env -iA <package> -f <revision>`.
