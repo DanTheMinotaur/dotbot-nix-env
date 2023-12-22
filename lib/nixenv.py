@@ -37,9 +37,9 @@ class NixEnv:
         raise NixEnv.NixEnvException(self.__decode(r.stderr))
 
     def install(self, package: str, rev_path: str = None) -> str:
-        cmd = f'--install {package}'
+        cmd = f'--install --attr {package}'
         if rev_path is not None:
-            cmd = f'{cmd} --attr -f {rev_path}'
+            cmd = f'{cmd} -f {rev_path}'
 
         try:
             return self.nix_env(cmd)

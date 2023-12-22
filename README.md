@@ -14,7 +14,7 @@ git submodule update --init --recursive
 
 Add the `nixenv` directive to your `install.yaml`. 
 
-Using string values is equivalent to `nix-env -i <package>`, which will install the latest version available. 
+Using string values is equivalent to `nix-env -iA <package>`, which will install the latest version available. 
 Using a hash `{ <package>: <revision> }` is equivalent `nix-env -iA <package> -f <revision>`.
 
 You can find package revisions here: [https://lazamar.co.uk/nix-versions/](https://lazamar.co.uk/nix-versions/)
@@ -24,8 +24,8 @@ You can find package revisions here: [https://lazamar.co.uk/nix-versions/](https
 - nixenv:
     packages:
       - nodejs-15_x: 'https://github.com/NixOS/nixpkgs/archive/5c79b3dda06744a55869cae2cba6873fbbd64394.tar.gz'
-      - htop
-      - multitail
+      - nixpkgs.htop
+      - nixpkgs.multitail
 ```
 
 ## Dev Setup
