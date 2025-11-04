@@ -3,7 +3,7 @@ import subprocess
 
 class NixEnv:
     class NixEnvException(Exception):
-        def __init__(self, message='Error with nix-env'):
+        def __init__(self, message="Error with nix-env"):
             self.message = message
             super().__init__(message)
 
@@ -16,33 +16,32 @@ class NixEnv:
 
     @staticmethod
     def __decode(message: bytes, strip: bool = True) -> str:
-        message = message.decode('UTF-8')
+        message = message.decode("UTF-8")
         if strip:
             message = message.strip()
         return message
 
     @staticmethod
     def path() -> str:
-        r = NixEnv.shell('which nix-env')
+        r = NixEnv.shell("which nix-env")
         if r.returncode == 0:
             return NixEnv.__decode(r.stdout)
-        raise NixEnv.NixEnvException('Unable to find nix-env on PATH')
+        raise NixEnv.NixEnvException("Unable to find nix-env on PATH")
 
     def nix_env(self, subcmd: str) -> str:
-        cmd = f'nix-env {subcmd}'
+        cmd = f"nix {subcmd}"
         r = self.shell(cmd)
         if r.returncode == 0:
             msg = r.stdout if len(r.stdout) else r.stderr
-            return self.__decode(msg, False).split('\n', 1)[0]
+            return self.__decode(msg, False).split("\n", 1)[0]
         raise NixEnv.NixEnvException(self.__decode(r.stderr))
 
-    def install(self, package: str, rev_path: str = None) -> str:
-        cmd = f'--install --attr {package}'
-        if rev_path is not None:
-            cmd = f'{cmd} -f {rev_path}'
+    def install(self, package: str) -> str:
+        cmd = f"profile add {package}"
 
         try:
             return self.nix_env(cmd)
         except NixEnv.NixEnvException as e:
-            raise NixEnv.NixEnvException(f'Unable to install package "{package}"; Reason: "{e.message}"')
-
+            raise NixEnv.NixEnvException(
+                f'Unable to install package "{package}"; Reason: "{e.message}"'
+            )
