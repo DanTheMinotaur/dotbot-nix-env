@@ -1,5 +1,4 @@
 - nixenv:
     packages:
-      - nodejs-15_x: 'https://github.com/NixOS/nixpkgs/archive/5c79b3dda06744a55869cae2cba6873fbbd64394.tar.gz'
-      - htop
-      - multitail
+      - nixpkgs#htop
+      - nixpkgs#multitail

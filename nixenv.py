@@ -17,7 +17,7 @@ from lib.nixenv import NixEnv
 
 
 class NixEnvPlugin(dotbot.Plugin):
-    _directive = 'nixenv'
+    _directive = "nixenv"
 
     def can_handle(self, directive: str) -> bool:
         return directive == self._directive
@@ -26,17 +26,17 @@ class NixEnvPlugin(dotbot.Plugin):
         if not self.can_handle(directive):
             return False
 
-        self._log.info('Installing packages with nix-env')
+        self._log.info("Installing packages with nix-env")
 
         nix: NixEnv
 
         try:
-            nix = NixEnv(config.get('nix_path', None))
+            nix = NixEnv(config.get("nix_path", None))
         except NixEnv.NixEnvException as e:
             self._log.info(e.message)
             return False
 
-        packages: List[str, Dict] = config.get('packages', [])
+        packages: List[str, Dict] = config.get("packages", [])
 
         for package in packages:
             try:
@@ -44,15 +44,15 @@ class NixEnvPlugin(dotbot.Plugin):
                 if isinstance(package, dict):
                     package, revision = next(iter(package.items()))
 
-                pkg_msg = f'{package}'
+                pkg_msg = f"{package}"
                 if revision:
                     pkg_msg += f"; Revision: {revision}"
 
-                self._log.info(f'Installing {pkg_msg}')
+                self._log.info(f"Installing {pkg_msg}")
 
-                nix.install(package, revision)
+                nix.install(package)
 
-                self._log.info(f'Installed {pkg_msg}')
+                self._log.info(f"Installed {pkg_msg}")
             except NixEnv.NixEnvException as e:
                 self._log.error(e.message)
         return True
