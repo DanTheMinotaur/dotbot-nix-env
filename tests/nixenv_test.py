@@ -55,7 +55,7 @@ class TestNixEnv(unittest.TestCase):
             r = nix.install("multitail")
             self.assertEqual(r, "installing 'multitail-7.0.0'")
             args, _ = mock.call_args
-            self.assertEqual(args[0], "nix-env profile add multitail")
+            self.assertEqual(args[0], "nix profile add multitail")
 
     def test_install_fails(self):
         mock = MagicMock(
