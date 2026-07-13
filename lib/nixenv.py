@@ -1,3 +1,4 @@
+import json
 import subprocess
 
 
@@ -9,6 +10,8 @@ class NixEnv:
 
     def __init__(self, path: str = None):
         self.path = self.path() if path is None else path
+        r = self.shell("nix profile list --json")
+        self._installed = set(json.loads(r.stdout).get("elements", {}).keys()) if r.returncode == 0 else set()
 
     @staticmethod
     def shell(cmd: str) -> subprocess.CompletedProcess:
@@ -36,7 +39,14 @@ class NixEnv:
             return self.__decode(msg, False).split("\n", 1)[0]
         raise NixEnv.NixEnvException(self.__decode(r.stderr))
 
+    def is_installed(self, package: str) -> bool:
+        bare = package.split("#")[-1].split("^")[0]
+        return bare in self._installed
+
     def install(self, package: str) -> str:
+        if self.is_installed(package):
+            return f'Package "{package}" is already installed'
+
         cmd = f"profile add {package}"
 
         try:
