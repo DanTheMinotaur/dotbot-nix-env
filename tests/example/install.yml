@@ -1,4 +1,5 @@
 - nixenv:
+    update: false
     packages:
       - nixpkgs#htop
       - nixpkgs#multitail

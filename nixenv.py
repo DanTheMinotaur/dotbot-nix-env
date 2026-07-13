@@ -1,6 +1,6 @@
 import os
 import sys
-from typing import List, Dict
+from typing import List
 
 import dotbot
 
@@ -22,7 +22,7 @@ class NixEnvPlugin(dotbot.Plugin):
     def can_handle(self, directive: str) -> bool:
         return directive == self._directive
 
-    def handle(self, directive: str, config: Dict) -> bool:
+    def handle(self, directive: str, config: dict) -> bool:
         if not self.can_handle(directive):
             return False
 
@@ -36,20 +36,15 @@ class NixEnvPlugin(dotbot.Plugin):
             self._log.error(e.message)
             return False
 
-        packages: List[str, Dict] = config.get("packages", [])
+        update: bool = config.get("update", False)
+        packages: List[str] = config.get("packages", [])
 
         for package in packages:
             try:
-                revision = None
-                if isinstance(package, dict):
-                    package, revision = next(iter(package.items()))
-
-                pkg_msg = f"{package}"
-                if revision:
-                    pkg_msg += f"; Revision: {revision}"
-
-                result = nix.install(package)
-                self._log.action(result)
+                result = nix.install(package, update=update)
+                self._log.action(result.message)
+                if result.output:
+                    self._log.debug(result.output)
             except NixEnv.NixEnvException as e:
                 self._log.error(e.message)
         return True

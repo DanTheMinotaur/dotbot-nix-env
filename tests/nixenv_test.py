@@ -92,7 +92,8 @@ class TestNixEnv(unittest.TestCase):
         with patch.object(NixEnv, "shell", mock):
             nix = NixEnv("/usr/bin/nix-env")
             r = nix.install("multitail")
-            self.assertEqual(r, "installing 'multitail-7.0.0'")
+            self.assertEqual(r.message, 'Package "multitail" installed successfully')
+            self.assertIn("installing 'multitail-7.0.0'", r.output)
             last_cmd = mock.call_args[0][0]
             self.assertEqual(last_cmd, "nix profile add multitail")
 
@@ -103,9 +104,9 @@ class TestNixEnv(unittest.TestCase):
 
         with patch.object(NixEnv, "shell", mock):
             nix = NixEnv("/usr/bin/nix-env")
-            self.assertIn("already installed", nix.install("nixpkgs#htop"))
-            self.assertIn("already installed", nix.install("nixpkgs/release-24.05#htop"))
-            self.assertIn("already installed", nix.install("nixpkgs#htop^man"))
+            self.assertIn("already installed", nix.install("nixpkgs#htop").message)
+            self.assertIn("already installed", nix.install("nixpkgs/release-24.05#htop").message)
+            self.assertIn("already installed", nix.install("nixpkgs#htop^man").message)
 
 
     def test_install_already_installed(self):
@@ -114,10 +115,79 @@ class TestNixEnv(unittest.TestCase):
         with patch.object(NixEnv, "shell", mock):
             nix = NixEnv("/usr/bin/nix-env")
             r = nix.install("multitail")
-            self.assertIn("already installed", r)
+            self.assertIn("already installed", r.message)
+            self.assertEqual(r.output, "")
             # profile add must never be called
             for c in mock.call_args_list:
                 self.assertNotIn("profile add", c[0][0])
+
+
+    def test_upgrade_when_update_true(self):
+        upgrade_result = CompletedProcess(
+            args="nix profile upgrade multitail",
+            returncode=0,
+            stdout=b"",
+            stderr=(
+                b"upgrading 'legacyPackages.x86_64-linux.multitail'"
+                b" from flake 'https://nixos.org/nixpkgs/old'"
+                b" to 'https://nixos.org/nixpkgs/new'\n"
+            ),
+        )
+        mock = shell_responses(
+            **{"profile list": PROFILE_WITH_MULTITAIL, "profile upgrade": upgrade_result}
+        )
+
+        with patch.object(NixEnv, "shell", mock):
+            nix = NixEnv("/usr/bin/nix-env")
+            r = nix.install("multitail", update=True)
+            self.assertEqual(r.message, 'Package "multitail" upgraded successfully')
+            self.assertIn("upgrading", r.output)
+            last_cmd = mock.call_args[0][0]
+            self.assertEqual(last_cmd, "nix profile upgrade multitail")
+
+    def test_upgrade_already_up_to_date(self):
+        same_url = b"https://nixos.org/nixpkgs/same"
+        upgrade_result = CompletedProcess(
+            args="nix profile upgrade multitail",
+            returncode=0,
+            stdout=b"",
+            stderr=(
+                b"upgrading 'legacyPackages.x86_64-linux.multitail'"
+                b" from flake '" + same_url + b"'"
+                b" to '" + same_url + b"'\n"
+            ),
+        )
+        mock = shell_responses(
+            **{"profile list": PROFILE_WITH_MULTITAIL, "profile upgrade": upgrade_result}
+        )
+
+        with patch.object(NixEnv, "shell", mock):
+            nix = NixEnv("/usr/bin/nix-env")
+            r = nix.install("multitail", update=True)
+            self.assertEqual(r.message, 'Package "multitail" is already up to date')
+
+    def test_upgrade_uses_bare_name(self):
+        """nixpkgs#htop should upgrade using bare name 'htop'."""
+        upgrade_result = CompletedProcess(
+            args="nix profile upgrade htop",
+            returncode=0,
+            stdout=b"",
+            stderr=(
+                b"upgrading 'legacyPackages.x86_64-linux.htop'"
+                b" from flake 'https://nixos.org/nixpkgs/old'"
+                b" to 'https://nixos.org/nixpkgs/new'\n"
+            ),
+        )
+        mock = shell_responses(
+            **{"profile list": PROFILE_WITH_HTOP, "profile upgrade": upgrade_result}
+        )
+
+        with patch.object(NixEnv, "shell", mock):
+            nix = NixEnv("/usr/bin/nix-env")
+            nix.install("nixpkgs#htop", update=True)
+            last_cmd = mock.call_args[0][0]
+            self.assertEqual(last_cmd, "nix profile upgrade htop")
+
 
     def test_install_fails(self):
         mock = shell_responses(
